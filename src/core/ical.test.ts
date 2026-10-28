@@ -56,9 +56,11 @@ t('đọc tiêu đề, mô tả gập dòng, bỏ sự kiện hủy', () => {
 })
 
 t('chuỗi lặp: loại EXDATE và lần bị sửa riêng', () => {
-  const occ = occurrencesBetween(evs, Date.UTC(2026, 9, 26), Date.UTC(2026, 10, 1))
-  const titles = occ.map((o) => `${new Date(o.start).toISOString().slice(5, 13)} ${o.event.title}`)
-  assert.deepEqual(titles, ['10-27T02 Họp, nhóm', '10-29T07 Họp dời', '10-30T02 UTC', '10-31T17 Nghỉ lễ'])
+  // Cửa sổ rộng để không phụ thuộc múi giờ của máy chạy test (sự kiện cả ngày tính theo giờ máy).
+  const occ = occurrencesBetween(evs, Date.UTC(2026, 9, 26), Date.UTC(2026, 10, 3))
+  const timed = occ.filter((o) => !o.event.allDay).map((o) => `${new Date(o.start).toISOString().slice(5, 13)} ${o.event.title}`)
+  assert.deepEqual(timed, ['10-27T02 Họp, nhóm', '10-29T07 Họp dời', '10-30T02 UTC'])
+  assert.equal(occ.filter((o) => o.event.allDay).length, 1)
   assert.equal(evs[1].end - evs[1].start, 30 * 60_000)
 })
 
