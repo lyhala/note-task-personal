@@ -208,8 +208,18 @@ export async function getAccessToken(purpose: GooglePurpose, force = false): Pro
   const store = readStore()
   const acct = store[purpose]
   if (!acct || acct.expired) throw new AuthExpiredError()
+  let refresh: string
   try {
-    const tok = await postToken({ refresh_token: unseal(acct), grant_type: 'refresh_token' })
+    refresh = unseal(acct)
+  } catch {
+    // Không giải mã được (khóa mã hóa của hệ điều hành đổi, hoặc dữ liệu hỏng): coi như phiên hết hạn, đăng nhập lại là xong.
+    cache.delete(purpose)
+    store[purpose] = { ...acct, expired: true }
+    writeStore(store)
+    throw new AuthExpiredError()
+  }
+  try {
+    const tok = await postToken({ refresh_token: refresh, grant_type: 'refresh_token' })
     cache.set(purpose, { token: tok.access_token as string, expiresAt: Date.now() + (Number(tok.expires_in) - 60) * 1000 })
     return tok.access_token as string
   } catch (e) {
