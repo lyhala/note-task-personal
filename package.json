@@ -1,0 +1,104 @@
+{
+  "name": "note-task-personal",
+  "version": "0.1.0",
+  "private": true,
+  "repository": "https://github.com/lyhala/note-task-personal",
+  "description": "Note, Reminder, Lịch cá nhân",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node scripts/test-core.mjs",
+    "pack": "electron-vite build && electron-builder --dir",
+    "dist:win": "electron-vite build && electron-builder --win nsis",
+    "dist:mac": "electron-vite build && electron-builder --mac dmg",
+    "dist:store": "electron-vite build && electron-builder --win appx -c.extraMetadata.storeBuild=true"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "@fontsource/be-vietnam-pro": "^5.3.0",
+    "@fontsource/lora": "^5.3.0",
+    "@fontsource/patrick-hand": "^5.3.0",
+    "@fontsource/roboto-mono": "^5.3.0",
+    "electron-updater": "^6.8.11",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "author": "Note Task Personal",
+  "build": {
+    "appId": "com.personal.notetask",
+    "productName": "Note Task Personal",
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
+    "files": [
+      "out/**",
+      "resources/**",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "shortcutName": "Note Task Personal"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity"
+    },
+    "appx": {
+      "applicationId": "NoteTaskPersonal",
+      "displayName": "Note Task Personal",
+      "identityName": "REPLACE_WITH_STORE_IDENTITY_NAME",
+      "publisher": "CN=REPLACE_WITH_STORE_PUBLISHER_ID",
+      "publisherDisplayName": "REPLACE_WITH_PUBLISHER_NAME",
+      "languages": [
+        "vi-VN",
+        "en-US"
+      ]
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "lyhala",
+        "repo": "note-task-personal",
+        "releaseType": "release"
+      }
+    ]
+  }
+}

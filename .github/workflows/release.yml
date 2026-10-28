@@ -1,0 +1,39 @@
+# Mỗi lần đẩy tag dạng v0.1.1: kiểm tra, build bản cài Windows (.exe) và Mac (.dmg), rồi đưa lên GitHub Releases.
+# Các máy đã cài sẽ tự tải bản mới (electron-updater đọc từ chính Release này).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build và phát hành
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then T="--win nsis"; else T="--mac dmg"; fi
+          npx electron-vite build
+          npx electron-builder $T --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Khóa Google nhúng vào bản build (đặt trong Settings > Secrets and variables > Actions)
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
