@@ -98,6 +98,7 @@ export function NotePaper({ note, folders, onChange, onTrash, onOpenSticky, onRe
   const [zoom, setZoom] = useState(1)
   const [box, setBox] = useState({ w: note.width, h: note.height })
   const [drawing, setDrawing] = useState(false)
+  const [dragArmed, setDragArmed] = useState(false)
   const [draw, setDraw] = useState<DrawState>(DEFAULT_DRAW)
   const [selection, setSelection] = useState<Selection | null>(null)
   const undo = useRef<Stroke[][]>([])
@@ -207,8 +208,10 @@ export function NotePaper({ note, folders, onChange, onTrash, onOpenSticky, onRe
       data-note-id={note.id}
       className={`paper pattern-${note.pattern} ${sticky ? 'is-sticky' : ''}`}
       style={style}
-      draggable={!sticky && !drawing}
+      // Chỉ kéo cả tờ note khi bấm giữ ở thanh trên cùng; kéo chuột trong nội dung là bôi đen chữ.
+      draggable={!sticky && !drawing && dragArmed}
       onDragStart={(e) => e.dataTransfer.setData('text/note-id', note.id)}
+      onDragEnd={() => setDragArmed(false)}
       onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()}
       onDrop={(e) => {
         if (!e.dataTransfer.files.length) return
@@ -227,7 +230,12 @@ export function NotePaper({ note, folders, onChange, onTrash, onOpenSticky, onRe
           e.target.value = ''
         }}
       />
-      <div className="paper-bar">
+      <div
+        className="paper-bar"
+        title={sticky ? undefined : 'Giữ và kéo thanh này để thả note vào folder'}
+        onMouseDown={(e) => !sticky && !(e.target as HTMLElement).closest('button, select, input') && setDragArmed(true)}
+        onMouseUp={() => setDragArmed(false)}
+      >
         <div className="swatches">
           {PAPER_COLORS.map((c) => (
             <button

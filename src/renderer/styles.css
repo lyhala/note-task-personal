@@ -601,3 +601,11 @@ button.primary.danger-fill { background-color: var(--danger); border-color: colo
 .attach-row small { color: var(--muted); }
 .attach-link { display: flex; flex-direction: column; gap: 6px; }
 .version-line { text-align: center; font-size: 12px; margin: 8px 0 0; }
+
+/* Thanh trên cùng của note là chỗ để nắm kéo note vào folder */
+.paper:not(.is-sticky) .paper-bar { cursor: grab; }
+.paper:not(.is-sticky) .paper-bar button, .paper:not(.is-sticky) .paper-bar select { cursor: pointer; }
+
+/* Nút + tạo folder: to và dễ bấm */
+.side-title button.icon { width: 30px; height: 30px; font-size: 20px; line-height: 1; color: var(--accent); border-radius: 10px; }
+.branch .side-title button.icon { width: 26px; height: 26px; font-size: 18px; }
