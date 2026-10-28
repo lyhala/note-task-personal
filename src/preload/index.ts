@@ -17,6 +17,8 @@ function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
 }
 
 const desktop = {
+  /** Phiên bản app và việc tự cập nhật có đang bật không. */
+  updateInfo: (): Promise<{ version: string; enabled: boolean; reason?: string }> => ipcRenderer.invoke('update:info'),
   onUpdateMessage: (cb: (msg: string) => void) => subscribe('update:message', cb),
   /** Hộp thoại lưu file; trả về đường dẫn đã lưu, hoặc null nếu người dùng hủy. */
   saveFile: (name: string, text: string): Promise<string | null> => ipcRenderer.invoke('data:save', name, text),

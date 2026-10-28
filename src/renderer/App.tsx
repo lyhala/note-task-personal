@@ -619,6 +619,7 @@ export function App({ compactStart = false }: { compactStart?: boolean }) {
               </div>
               <ThemePanel settings={settings} onChange={updateSettings} />
               <DesktopPanel />
+              <VersionLine />
             </div>
           </div>
         )}
@@ -750,6 +751,19 @@ function toAccelerator(e: React.KeyboardEvent): string | null {
   else if (['Enter', 'Tab', 'Home', 'End', 'PageUp', 'PageDown', 'Insert', 'Delete'].includes(k)) key = k
   else return null
   return [...mods, key].join('+')
+}
+
+function VersionLine() {
+  const [info, setInfo] = useState<{ version: string; enabled: boolean; reason?: string } | null>(null)
+  useEffect(() => {
+    void window.api.desktop.updateInfo().then(setInfo)
+  }, [])
+  if (!info) return null
+  return (
+    <p className="muted version-line">
+      Phiên bản {info.version} · {info.enabled ? 'tự cập nhật đang bật' : `không tự cập nhật (${info.reason})`}
+    </p>
+  )
 }
 
 function DesktopPanel() {

@@ -600,3 +600,4 @@ button.primary.danger-fill { background-color: var(--danger); border-color: colo
 .attach-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 12px; background: var(--surface); }
 .attach-row small { color: var(--muted); }
 .attach-link { display: flex; flex-direction: column; gap: 6px; }
+.version-line { text-align: center; font-size: 12px; margin: 8px 0 0; }
