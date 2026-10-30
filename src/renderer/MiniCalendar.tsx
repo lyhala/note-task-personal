@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { addDays, dateStr, occurrenceDatesBetween } from '@core/reminders'
+import { addDays, dateStr, isDoneNow, occurrenceDatesBetween, parseDate } from '@core/reminders'
 import { occurrencesBetween, wallToMs, type CalEvent, type CalendarSource } from '@core/calendar'
 import type { Reminder } from '@core/types'
 
@@ -12,9 +12,11 @@ interface Props {
   calendars?: CalendarSource[]
 }
 
-/** Lịch tháng nhỏ ở My day: đánh dấu hôm nay, và chấm những ngày có reminder chưa xong. */
+/** Lịch tháng nhỏ ở My day: đánh dấu hôm nay, chấm những ngày có việc, bấm vào một ngày để xem lịch hẹn và reminder của ngày đó. */
 export function MiniCalendar({ reminders, now, events = [], calendars = [] }: Props) {
   const today = dateStr(new Date(now))
+  const [picked, setPicked] = useState<string | null>(null)
+  const sel = picked ?? today
   const [shown, setShown] = useState(() => {
     const d = new Date(now)
     return new Date(d.getFullYear(), d.getMonth(), 1)
@@ -44,6 +46,23 @@ export function MiniCalendar({ reminders, now, events = [], calendars = [] }: Pr
     }
     return m
   }, [reminders, cells, events, calendars])
+
+  const agenda = useMemo(() => {
+    const visible = new Set(calendars.filter((c) => c.visible).map((c) => c.id))
+    const color = new Map(calendars.map((c) => [c.id, c.color]))
+    const dayStart = wallToMs(sel, 0, null)
+    const evs = occurrencesBetween(events.filter((e) => visible.has(e.calendarId)), dayStart, wallToMs(addDays(sel, 1), 0, null))
+      .sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start - b.start)
+      .map((o) => {
+        const hm = (ms: number) => new Date(ms).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+        return { key: o.key, when: o.allDay ? 'Cả ngày' : `${hm(o.start)}–${hm(o.end)}`, title: o.event.title, color: color.get(o.event.calendarId) ?? 'var(--accent)', where: o.event.location }
+      })
+    const rems = reminders
+      .filter((r) => !r.deletedAt && occurrenceDatesBetween(r, addDays(sel, -1), sel).includes(sel))
+      .map((r) => ({ key: r.id, when: r.time ?? 'Cả ngày', title: r.title, done: isDoneNow(r, sel) }))
+      .sort((a, b) => a.when.localeCompare(b.when))
+    return { evs, rems }
+  }, [sel, events, calendars, reminders])
 
   const go = (delta: number) => setShown((s) => new Date(s.getFullYear(), s.getMonth() + delta, 1))
   const isCurrent = shown.getFullYear() === new Date(now).getFullYear() && shown.getMonth() === new Date(now).getMonth()
@@ -80,14 +99,31 @@ export function MiniCalendar({ reminders, now, events = [], calendars = [] }: Pr
           return (
             <span
               key={c.date}
-              className={`day ${c.inMonth ? '' : 'out'} ${c.weekend ? 'we' : ''} ${c.date === today ? 'today' : ''}`}
-              title={n ? `${n} reminder` : undefined}
+              className={`day ${c.inMonth ? '' : 'out'} ${c.weekend ? 'we' : ''} ${c.date === today ? 'today' : ''} ${c.date === sel ? 'picked' : ''}`}
+              title={n ? `${n} việc` : undefined}
+              onClick={() => setPicked(c.date === today ? null : c.date)}
             >
               {c.day}
               {n > 0 && <i />}
             </span>
           )
         })}
+      </div>
+      <div className="minical-agenda">
+        <b>{sel === today ? 'Hôm nay' : parseDate(sel).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}</b>
+        {agenda.evs.length + agenda.rems.length === 0 && <small className="muted">Không có lịch hẹn.</small>}
+        {agenda.evs.map((e) => (
+          <div key={e.key} className="ag-row" style={{ ['--c' as string]: e.color }}>
+            <span className="ag-when">{e.when}</span>
+            <span className="ag-title">{e.title}</span>
+          </div>
+        ))}
+        {agenda.rems.map((r) => (
+          <div key={r.key} className={`ag-row rem ${r.done ? 'done' : ''}`}>
+            <span className="ag-when">{r.when}</span>
+            <span className="ag-title">⏰ {r.title}</span>
+          </div>
+        ))}
       </div>
     </section>
   )

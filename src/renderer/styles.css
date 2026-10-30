@@ -609,3 +609,15 @@ button.primary.danger-fill { background-color: var(--danger); border-color: colo
 /* Nút + tạo folder: to và dễ bấm */
 .side-title button.icon { width: 30px; height: 30px; font-size: 20px; line-height: 1; color: var(--accent); border-radius: 10px; }
 .branch .side-title button.icon { width: 26px; height: 26px; font-size: 18px; }
+
+/* Lịch nhỏ ở My day: danh sách lịch hẹn của ngày đang chọn */
+.minical-grid .day { cursor: pointer; }
+.minical-grid .day.picked:not(.today) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.minical-agenda { margin-top: 10px; padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent); display: flex; flex-direction: column; gap: 4px; max-height: 170px; overflow: auto; font-size: 13px; }
+.minical-agenda b { font-size: 13px; }
+.minical-agenda b::first-letter { text-transform: uppercase; }
+.ag-row { display: flex; gap: 8px; align-items: baseline; padding: 2px 0 2px 8px; border-left: 3px solid var(--c, var(--muted)); }
+.ag-row.rem { --c: var(--muted); }
+.ag-row.done .ag-title { text-decoration: line-through; opacity: .55; }
+.ag-when { color: var(--muted); font-size: 12px; white-space: nowrap; min-width: 74px; }
+.ag-title { overflow: hidden; text-overflow: ellipsis; }

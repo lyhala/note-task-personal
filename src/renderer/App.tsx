@@ -532,13 +532,17 @@ export function App({ compactStart = false }: { compactStart?: boolean }) {
                   defaultValue={f.name}
                   onFocus={(e) => e.target.select()}
                   onBlur={(e) => renameFolder(f, e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                    else if (e.key === 'Escape') setRenaming(null)
+                  }}
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
                 <span>{f.name}</span>
               )}
               <small>{live.filter((n) => n.folderId === f.id).length}</small>
+              <button className="icon del" title="Đổi tên folder" onClick={(e) => { e.stopPropagation(); setRenaming(f.id) }}>✎</button>
               <button className="icon del" title="Xóa folder" onClick={(e) => { e.stopPropagation(); removeFolder(f) }}>✕</button>
             </div>
           ))}

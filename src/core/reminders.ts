@@ -182,7 +182,6 @@ export function displayOccurrence(r: Reminder, today: string): Occurrence | null
 
 /** Đã tick cho lần xuất hiện / ngày hôm nay chưa. */
 export function isDoneNow(r: Reminder, today: string): boolean {
-  if (isNudgeOnly(r)) return r.doneDates.includes(today)
   if (isRepeating(r)) {
     const occ = displayOccurrence(r, today)
     return !!occ && r.doneDates.includes(occ.date)
@@ -194,7 +193,7 @@ export type Bucket = 'overdue' | 'today' | 'upcoming' | 'nodue' | 'done'
 
 export function bucketOf(r: Reminder, now: number): Bucket {
   const today = dateStr(new Date(now))
-  if (!isRepeating(r) && !isNudgeOnly(r) && r.done) return 'done'
+  if (!isRepeating(r) && r.done) return 'done'
   if (isNudgeOnly(r)) return 'today'
   const occ = displayOccurrence(r, today)
   if (!occ) return 'nodue'
@@ -208,7 +207,7 @@ export function bucketOf(r: Reminder, now: number): Bucket {
 /** Mô tả hạn để hiển thị, ví dụ "Hôm nay 14:30". */
 export function describeDue(r: Reminder, now: number, occDate?: string): string {
   const today = dateStr(new Date(now))
-  if (isNudgeOnly(r)) return 'Nhắc hàng ngày 9:00'
+  if (isNudgeOnly(r)) return 'Nhắc mỗi sáng 9:00 cho tới khi tick'
   const occ = displayOccurrence(r, today)
   const date = occDate ?? occ?.date
   if (!occ || !date) return ''
@@ -250,12 +249,12 @@ export function describeRepeat(r: Reminder): string {
 
 // ---- Tick, hoãn ----
 
-/** Tick xong hoặc mở lại. Reminder lặp / nhắc hàng ngày chỉ gạch cho lần xuất hiện (ngày) hiện tại. */
+/** Tick xong hoặc mở lại. Reminder lặp chỉ gạch cho lần xuất hiện hiện tại; reminder không lặp (kể cả có nhắc 9:00 mỗi sáng) tick là xong hẳn. */
 export function toggleDone(r: Reminder, now: number): Reminder {
   const today = dateStr(new Date(now))
   const base = { ...r, snoozeUntil: null, updatedAt: now }
-  if (isNudgeOnly(r) || isRepeating(r)) {
-    const key = isNudgeOnly(r) ? today : displayOccurrence(r, today)!.date
+  if (isRepeating(r)) {
+    const key = displayOccurrence(r, today)!.date
     const has = r.doneDates.includes(key)
     return { ...base, doneDates: has ? r.doneDates.filter((d) => d !== key) : [...r.doneDates, key].slice(-400) }
   }
@@ -289,7 +288,7 @@ export interface Trigger {
  */
 export function dueTriggers(r: Reminder, now: number): Trigger[] {
   if (r.deletedAt) return []
-  if (!isRepeating(r) && !isNudgeOnly(r) && r.done) return []
+  if (!isRepeating(r) && r.done) return []
   const from = r.firedAt ?? r.createdAt
   const today = dateStr(new Date(now))
   const out: Trigger[] = []
@@ -302,7 +301,7 @@ export function dueTriggers(r: Reminder, now: number): Trigger[] {
   const lookStart = addDays(today, -LOOKBACK_DAYS)
   const fromDay = dateStr(new Date(Math.max(from, parseDate(lookStart).getTime())))
   const dueAt = (date: string) => (r.time ? atTime(date, r.time) : nineAm(date))
-  const doneOn = (date: string) => (isRepeating(r) || isNudgeOnly(r) ? r.doneDates.includes(date) : r.done)
+  const doneOn = (date: string) => (isRepeating(r) ? r.doneDates.includes(date) : r.done)
 
   // Đến hạn
   if (r.date) {

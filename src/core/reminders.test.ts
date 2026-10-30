@@ -95,6 +95,16 @@ test('nhắc hàng ngày 9:00 cho tới khi tick', () => {
   assert.deepEqual(dueTriggers(ticked, t(2026, 10, 23, 9, 1)), [])
 })
 
+test('có nhắc 9:00 mỗi sáng mà đã tick thì xong hẳn, hôm sau không hiện lại', () => {
+  for (const base of [make({ dailyNudge: true }), make({ dailyNudge: true, date: '2026-10-23' })]) {
+    const done = toggleDone(base, t(2026, 10, 23, 8))
+    assert.equal(done.done, true)
+    assert.equal(bucketOf(done, t(2026, 10, 24, 10)), 'done')
+    assert.deepEqual(dueTriggers({ ...done, createdAt: t(2026, 10, 20) }, t(2026, 10, 25, 9, 1)), [])
+    assert.equal(toggleDone(done, t(2026, 10, 24)).done, false) // bỏ tick thì mở lại
+  }
+})
+
 test('hoãn: chưa tới giờ thì im, hết hoãn thì nhắc lại', () => {
   const base = make({ date: '2026-10-23', time: '10:00', createdAt: t(2026, 10, 22), firedAt: t(2026, 10, 23, 10) })
   const s = snooze(base, '1h', t(2026, 10, 23, 10, 5))
